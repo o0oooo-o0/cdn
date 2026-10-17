@@ -1,6 +1,35 @@
--- if you are here to crack or paste, go ahead and try to bypass luaprot lol
 if getgenv().femboyvision then
 	return
+end
+
+do
+	local genv = getgenv()
+	local CoreGuiSvc = game:GetService("CoreGui")
+	local PlayersSvc = game:GetService("Players")
+	local origGetHui = rawget(genv, "gethui")
+	if type(origGetHui) ~= "function" and type(gethui) == "function" then
+		origGetHui = gethui
+	end
+	local function cloneSafe(inst)
+		if inst == nil then return nil end
+		if type(cloneref) == "function" then
+			local ok, ref = pcall(cloneref, inst)
+			if ok and ref ~= nil then return ref end
+		end
+		return inst
+	end
+	genv.gethui = function()
+		if type(origGetHui) == "function" then
+			local ok, hui = pcall(origGetHui)
+			if ok and hui ~= nil then return cloneSafe(hui) or hui end
+		end
+		local plr = PlayersSvc.LocalPlayer
+		if plr then
+			local pg = plr:FindFirstChildOfClass("PlayerGui")
+			if pg then return cloneSafe(pg) or pg end
+		end
+		return cloneSafe(CoreGuiSvc) or CoreGuiSvc
+	end
 end
 
 local Http = game:GetService("HttpService")
@@ -246,8 +275,9 @@ end
 local function Show(Preset, Notice)
 	local TitleFace, BodyFace = Fonts()
 	local Core = game:GetService("CoreGui")
-	if cloneref then
-		Core = cloneref(Core)
+	if type(cloneref) == "function" and Core then
+		local ok, ref = pcall(cloneref, Core)
+		if ok and ref then Core = ref end
 	end
 	local Gui = New("ScreenGui", {
 		Name = "RobloxGui",
@@ -561,4 +591,3 @@ end
 
 getgenv().femboyvision = true
 Show(Key)
--- Loader is vibecoded btw.
